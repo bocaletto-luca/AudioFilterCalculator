@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>High-Pass Filter — Calculator, Bode Plot, Audio Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="High-pass RC filter: interactive calculator, Bode magnitude/phase plots, and real-time Web Audio demo." />
+  <meta name="author" content="Bocaletto Luca" />
+  <meta name="keywords" content="high-pass filter, RC, calculator, Bode plot, audio, electronics" />
+  <link rel="canonical" href="https://your-domain.example/high-pass-filter.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="High-Pass Filter — Calculator, Bode Plot, Audio Demo" />
+  <meta property="og:description" content="Compute RC values, visualize response, and hear the filter live. Seamless with the rest of the site." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://your-domain.example/high-pass-filter.html" />
+  <meta property="og:image" content="https://your-domain.example/assets/og/high-pass.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="High-Pass Filter — Calculator, Bode Plot, Audio Demo" />
+  <meta name="twitter:description" content="Compute RC values, visualize response, and hear the filter live." />
+  <meta name="twitter:image" content="https://your-domain.example/assets/og/high-pass.png" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebPage",
+    "name":"High-Pass Filter — Calculator, Bode Plot, Audio Demo",
+    "url":"https://your-domain.example/high-pass-filter.html",
+    "description":"High-pass RC filter: interactive calculator, Bode magnitude/phase plots, and real-time Web Audio demo.",
+    "author": { "@type":"Person", "name":"Bocaletto Luca" },
+    "license":"https://www.gnu.org/licenses/gpl-3.0.en.html"
+  }
+  </script>
+
+  <!-- Shared site stylesheet (keep this consistent across pages) -->
+  <link rel="stylesheet" href="/assets/css/site.css" />
+
+  <!-- Page-scoped styles to match your theme tokens -->
+  <style>
+    :root {
+      --brand: #0ea5e9;      /* primary accent */
+      --brand-600: #0284c7;
+      --bg: #0b1220;         /* app background (dark) */
+      --surface: #0f172a;    /* card/nav background */
+      --text: #e5e7eb;       /* base text */
+      --muted: #94a3b8;
+      --border: #1f2937;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --focus: #38bdf8;
+    }
+
+    /* Layout */
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+      line-height: 1.5;
+    }
+    .container {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+
+    /* Header/Nav (kept consistent with index/low-pass) */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .brand .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand), var(--brand-600));
+      box-shadow: 0 0 10px rgba(14,165,233,.6);
+    }
+    .site-nav {
+      display: flex; gap: 0.6rem; align-items: center;
+    }
+    .site-nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+    }
+    .site-nav a:hover, .site-nav a[aria-current="page"] {
+      color: var(--text);
+      background: rgba(14,165,233,0.12);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 2rem 0 1rem;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    .hero h1 {
+      margin: 0 0 .5rem 0;
+      font-size: 2rem;
+      color: var(--text);
+    }
+    .eyebrow {
+      display: inline-block;
+      color: var(--brand);
+      font-weight: 600;
+      letter-spacing: .3px;
+      margin-bottom: .35rem;
+    }
+    .subtle {
+      color: var(--muted);
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .35rem .6rem;
+      background: rgba(14,165,233,0.12);
+      color: var(--brand);
+      border: 1px solid rgba(14,165,233,0.25);
+      border-radius: 999px;
+      font-size: .9rem;
+    }
+
+    /* Cards/Sections */
+    .section {
+      margin-top: 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .section h2 {
+      margin: 0 0 .75rem;
+      font-size: 1.3rem;
+    }
+    .grid {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* Form controls */
+    .form-row {
+      display: grid;
+      grid-template-columns: 200px 1fr 140px;
+      gap: .5rem;
+      align-items: center;
+      margin-bottom: .5rem;
+    }
+    label { color: var(--muted); }
+    input[type="number"], select, input[type="text"] {
+      width: 100%;
+      padding: .55rem .6rem;
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .unit {
+      width: 100%;
+      padding: .55rem .6rem;
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .btn-row { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .6rem; }
+    .btn {
+      padding: .55rem .8rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0b1220;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .btn:hover { border-color: var(--brand); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--brand), var(--brand-600));
+      border: none;
+      color: white;
+      box-shadow: 0 3px 14px rgba(14,165,233,.25);
+    }
+
+    /* Plot */
+    .plot {
+      width: 100%; height: 420px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .tabs { display: flex; gap: .5rem; margin-bottom: .6rem; }
+    .tab {
+      padding: .35rem .6rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+    }
+    .tab.active {
+      color: var(--text);
+      background: rgba(14,165,233,0.12);
+      border-color: rgba(14,165,233,0.35);
+    }
+
+    /* Footer */
+    .site-footer {
+      padding: 1.5rem 0 2rem;
+      color: var(--muted);
+    }
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0 .35rem;
+    }
+  </style>
+
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav">
+      <div class="brand">
+        <span class="dot" aria-hidden="true"></span>
+        <a href="/index.html" class="brand-link" aria-label="Home">bocaletto-luca</a>
+      </div>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="low-pass-filter.html">Low-Pass Filter</a>
+        <a href="high-pass-filter.html" aria-current="page">High-Pass Filter</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="container hero">
+      <div>
+        <span class="eyebrow">RC High-Pass Filter</span>
+        <h1>Calculate, visualize, and hear a high-pass filter</h1>
+        <p class="subtle">First-order RC high-pass filter with live calculator, Bode magnitude/phase plots, and real-time audio demo. Fully client-side, no tracking.</p>
+        <div class="btn-row" role="group" aria-label="Quick actions">
+          <a class="btn btn-primary" href="#calculator">Open calculator</a>
+          <a class="btn" href="#plots">See plots</a>
+          <a class="btn" href="#audio">Try audio</a>
+        </div>
+      </div>
+      <div class="pill" title="Cutoff at -3 dB">
+        fc = 1 / (2πRC)
+      </div>
+    </section>
+
+    <!-- Calculator -->
+    <section id="calculator" class="container section">
+      <h2>Calculator</h2>
+      <p class="subtle">Compute the cutoff frequency or solve for a missing component. Use SI units below for convenience.</p>
+
+      <div class="grid grid-2">
+        <div>
+          <div class="form-row">
+            <label for="mode">Solve for</label>
+            <select id="mode" class="unit" aria-label="Select variable to solve">
+              <option value="fc" selected>Cutoff frequency (fc)</option>
+              <option value="R">Resistance (R)</option>
+              <option value="C">Capacitance (C)</option>
+            </select>
+            <div></div>
+          </div>
+
+          <div class="form-row">
+            <label for="R">Resistance</label>
+            <input id="R" type="number" step="any" value="1000" />
+            <select id="R_unit" class="unit" aria-label="Resistance unit">
+              <option value="1">Ω</option>
+              <option value="1e3" selected>kΩ</option>
+              <option value="1e6">MΩ</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label for="C">Capacitance</label>
+            <input id="C" type="number" step="any" value="100" />
+            <select id="C_unit" class="unit" aria-label="Capacitance unit">
+              <option value="1">F</option>
+              <option value="1e-3">mF</option>
+              <option value="1e-6" selected>µF</option>
+              <option value="1e-9">nF</option>
+              <option value="1e-12">pF</option>
+            </select>
+          </div>
+
+          <div class="form-row" id="fcRow" style="display:none">
+            <label for="fc">Cutoff frequency</label>
+            <input id="fc" type="number" step="any" value="159.155" />
+            <div class="unit" aria-hidden="true">Hz</div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btnCalc">Calculate</button>
+            <button class="btn" id="btnReset">Reset</button>
+            <button class="btn" id="btnShare" title="Copy link with current parameters">Copy link</button>
+          </div>
+
+          <p id="result" class="subtle" style="margin-top:.5rem;"></p>
+        </div>
+
+        <div>
+          <div class="section" style="background:#0b1220">
+            <h3 style="margin-top:0;">Formula</h3>
+            <code class="kbd">fc = 1 / (2πRC)</code>
+            <p class="subtle">At fc the output magnitude is -3 dB. The slope approaches +20 dB/dec from low to high frequencies.</p>
+            <ul class="subtle">
+              <li>Impedance of capacitor: |Xc| = 1 / (2πfC)</li>
+              <li>Transfer function: H(jω) = jωRC / (1 + jωRC)</li>
+              <li>Magnitude: |H| = ωRC / √(1 + (ωRC)²)</li>
+              <li>Phase: φ = arctan(1/(ωRC)) − 90°</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plots -->
+    <section id="plots" class="container section">
+      <h2>Bode plots</h2>
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-plot="mag" role="tab" aria-selected="true">Magnitude (dB)</button>
+        <button class="tab" data-plot="phase" role="tab" aria-selected="false">Phase (deg)</button>
+      </div>
+      <div id="plot" class="plot" role="img" aria-label="Bode plot"></div>
+    </section>
+
+    <!-- Audio demo -->
+    <section id="audio" class="container section">
+      <h2>Audio demo</h2>
+      <p class="subtle">Hear how the high-pass filter affects a tone or noise. The cutoff is synced to your calculator values by default.</p>
+
+      <div class="grid grid-2">
+        <div>
+          <div class="form-row">
+            <label for="tone">Signal</label>
+            <select id="tone" class="unit">
+              <option value="sine">Sine</option>
+              <option value="square">Square</option>
+              <option value="sawtooth">Saw</option>
+              <option value="triangle">Triangle</option>
+              <option value="noise">White noise</option>
+            </select>
+            <div></div>
+          </div>
+          <div class="form-row">
+            <label for="freq">Frequency (tone)</label>
+            <input id="freq" type="number" value="1000" step="1" />
+            <div class="unit">Hz</div>
+          </div>
+          <div class="form-row">
+            <label for="sync">Sync cutoff to RC</label>
+            <select id="sync" class="unit">
+              <option value="on" selected>On</option>
+              <option value="off">Off</option>
+            </select>
+            <div></div>
+          </div>
+          <div class="form-row" id="manualFcRow" style="display:none">
+            <label for="manualFc">Manual cutoff</label>
+            <input id="manualFc" type="number" value="1000" step="1" />
+            <div class="unit">Hz</div>
+          </div>
+          <div class="btn-row">
+            <button id="btnPlay" class="btn btn-primary">Play</button>
+            <button id="btnStop" class="btn">Stop</button>
+          </div>
+          <p class="subtle">Wet/Dry</p>
+          <input id="mix" type="range" min="0" max="1" step="0.01" value="1" style="width:100%;" />
+        </div>
+        <div>
+          <div class="section" style="background:#0b1220">
+            <h3 style="margin-top:0;">Tip</h3>
+            <p class="subtle">Try a low frequency tone (e.g., 100 Hz) and increase the cutoff. You’ll hear bass roll off while highs pass through.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container site-footer">
+    <div class="subtle">© <span id="year"></span> Bocaletto Luca — Channel: bocaletto-luca — GPL v3</div>
+  </footer>
+
+  <script>
+    // Utilities
+    const $ = sel => document.querySelector(sel);
+    const clamp = (x, a, b) => Math.min(Math.max(x, a), b);
+    const toNumber = (id) => parseFloat($(id).value);
+
+    // State
+    const state = {
+      mode: 'fc', // 'fc' | 'R' | 'C'
+      R: 1000, Rk: 1e3, // base: R=1000, unit=kΩ => 1e3
+      C: 100, Ck: 1e-6, // base: C=100, unit=µF => 1e-6
+      fc: null
+    };
+
+    // Elements
+    const modeSel = $('#mode');
+    const Rinp = $('#R'); const Run = $('#R_unit');
+    const Cinp = $('#C'); const Cun = $('#C_unit');
+    const fcinp = $('#fc');
+    const fcRow = $('#fcRow');
+    const resultEl = $('#result');
+    const btnCalc = $('#btnCalc'); const btnReset = $('#btnReset'); const btnShare = $('#btnShare');
+
+    // URL params load
+    (function loadFromURL() {
+      const p = new URLSearchParams(location.search);
+      if (p.has('mode')) modeSel.value = p.get('mode');
+      if (p.has('R')) Rinp.value = p.get('R');
+      if (p.has('R_unit')) Run.value = p.get('R_unit');
+      if (p.has('C')) Cinp.value = p.get('C');
+      if (p.has('C_unit')) Cun.value = p.get('C_unit');
+      if (p.has('fc')) fcinp.value = p.get('fc');
+      updateMode();
+      compute();
+    })();
+
+    function updateMode() {
+      state.mode = modeSel.value;
+      // Toggle which input row is editable
+      if (state.mode === 'fc') {
+        Rinp.disabled = false; Run.disabled = false;
+        Cinp.disabled = false; Cun.disabled = false;
+        fcRow.style.display = 'none';
+      } else if (state.mode === 'R') {
+        Rinp.disabled = true; Run.disabled = false;
+        Cinp.disabled = false; Cun.disabled = false;
+        fcRow.style.display = '';
+      } else {
+        Rinp.disabled = false; Run.disabled = false;
+        Cinp.disabled = true; Cun.disabled = false;
+        fcRow.style.display = '';
+      }
+    }
+
+    function valuesSI() {
+      const R = parseFloat(Rinp.value) * parseFloat(Run.value);
+      const C = parseFloat(Cinp.value) * parseFloat(Cun.value);
+      return { R, C };
+    }
+
+    function compute() {
+      const { R, C } = valuesSI();
+      let msg = '';
+      if (state.mode === 'fc') {
+        const fc = 1 / (2 * Math.PI * R * C);
+        state.fc = fc;
+        msg = `Cutoff frequency fc = ${fc.toFixed(3)} Hz for R = ${fmtOhm(R)} and C = ${fmtF(C)}.`;
+        drawBode(R, C);
+      } else if (state.mode === 'R') {
+        const fc = parseFloat(fcinp.value);
+        const Rreq = 1 / (2 * Math.PI * fc * C);
+        state.fc = fc;
+        msg = `Required resistance R = ${fmtOhm(Rreq)} for fc = ${fc.toFixed(3)} Hz and C = ${fmtF(C)}.`;
+        drawBode(Rreq, C);
+      } else if (state.mode === 'C') {
+        const fc = parseFloat(fcinp.value);
+        const Creq = 1 / (2 * Math.PI * fc * R);
+        state.fc = fc;
+        msg = `Required capacitance C = ${fmtF(Creq)} for fc = ${fc.toFixed(3)} Hz and R = ${fmtOhm(R)}.`;
+        drawBode(R, Creq);
+      }
+      resultEl.textContent = msg;
+      // Update audio cutoff if synced
+      if ($('#sync').value === 'on' && biquad) {
+        biquad.frequency.value = state.fc || (1 / (2 * Math.PI * valuesSI().R * valuesSI().C));
+      }
+    }
+
+    function fmtOhm(R) {
+      if (R >= 1e6) return (R/1e6).toFixed(3) + ' MΩ';
+      if (R >= 1e3) return (R/1e3).toFixed(3) + ' kΩ';
+      return R.toFixed(3) + ' Ω';
+    }
+    function fmtF(C) {
+      if (C >= 1e-3) return (C*1e3).toFixed(3) + ' mF';
+      if (C >= 1e-6) return (C*1e6).toFixed(3) + ' µF';
+      if (C >= 1e-9) return (C*1e9).toFixed(3) + ' nF';
+      if (C >= 1e-12) return (C*1e12).toFixed(3) + ' pF';
+      return C.toExponential(3) + ' F';
+    }
+
+    // Plotly theme
+    const plotTheme = {
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: '#e5e7eb' },
+      xaxis: { type: 'log', gridcolor: '#1f2937', zerolinecolor: '#1f2937', title: 'Frequency (Hz)' },
+      yaxis: { gridcolor: '#1f2937', zerolinecolor: '#1f2937' },
+      margin: { t: 24, r: 16, b: 56, l: 60 }
+    };
+
+    const plotEl = document.getElementById('plot');
+    const tabBtns = document.querySelectorAll('.tab');
+
+    tabBtns.forEach(btn => btn.addEventListener('click', () => {
+      tabBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+      btn.classList.add('active'); btn.setAttribute('aria-selected', 'true');
+      compute();
+    }));
+
+    function drawBode(R, C) {
+      const N = 401;
+      const f = new Array(N);
+      const mag = new Array(N);
+      const phase = new Array(N);
+      const fMin = 1; const fMax = 1e5;
+      for (let i=0; i<N; i++) {
+        const t = i/(N-1);
+        const fi = Math.pow(10, Math.log10(fMin) + t*(Math.log10(fMax) - Math.log10(fMin)));
+        const w = 2*Math.PI*fi;
+        const wRC = w*R*C;
+        const Hmag = wRC / Math.sqrt(1 + wRC*wRC);
+        const Hdb = 20*Math.log10(Hmag);
+        const phi = (Math.atan(1/(wRC)) - Math.PI/2) * 180/Math.PI; // degrees
+        f[i] = fi; mag[i] = Hdb; phase[i] = phi;
+      }
+
+      const isPhase = document.querySelector('.tab.active').dataset.plot === 'phase';
+      const data = [{
+        x: f,
+        y: isPhase ? phase : mag,
+        mode: 'lines',
+        line: { color: '#38bdf8', width: 2 },
+        hovertemplate: 'f: %{x:.0f} Hz<br>' + (isPhase ? 'phase: %{y:.2f}°' : 'gain: %{y:.2f} dB') + '<extra></extra>',
+        name: isPhase ? 'Phase' : 'Magnitude'
+      }];
+
+      Plotly.newPlot(plotEl, data, {
+        ...plotTheme,
+        yaxis: { ...(plotTheme.yaxis), title: isPhase ? 'Phase (deg)' : 'Gain (dB)' }
+      }, { displayModeBar: false, responsive: true });
+    }
+
+    // Events
+    modeSel.addEventListener('change', () => { updateMode(); compute(); });
+    [Rinp, Run, Cinp, Cun, fcinp].forEach(el => el.addEventListener('input', compute));
+    btnCalc.addEventListener('click', compute);
+    btnReset.addEventListener('click', () => {
+      modeSel.value = 'fc';
+      Rinp.value = 1; Run.value = 1e3; // 1 kΩ
+      Cinp.value = 100; Cun.value = 1e-6; // 100 µF
+      fcinp.value = 159.155;
+      updateMode(); compute();
+    });
+    btnShare.addEventListener('click', async () => {
+      const p = new URLSearchParams({
+        mode: modeSel.value,
+        R: Rinp.value, R_unit: Run.value,
+        C: Cinp.value, C_unit: Cun.value,
+        fc: fcinp.value
+      });
+      const url = `${location.origin}${location.pathname}?${p.toString()}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        resultEl.textContent = 'Link copied to clipboard.';
+      } catch {
+        resultEl.textContent = url;
+      }
+    });
+
+    // Audio
+    let audioCtx = null, osc = null, biquad = null, noiseNode = null, dryGain = null, wetGain = null, merger = null;
+
+    function ensureAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      dryGain = audioCtx.createGain(); wetGain = audioCtx.createGain();
+      dryGain.gain.value = 0; wetGain.gain.value = 1;
+      biquad = audioCtx.createBiquadFilter(); biquad.type = 'highpass';
+      dryGain.connect(audioCtx.destination);
+      wetGain.connect(audioCtx.destination);
+    }
+
+    function setCutoffForAudio() {
+      const sync = $('#sync').value === 'on';
+      let fc = 1000;
+      if (sync) {
+        const { R, C } = valuesSI();
+        fc = 1 / (2 * Math.PI * R * C);
+      } else {
+        fc = parseFloat($('#manualFc').value) || 1000;
+      }
+      if (biquad) biquad.frequency.value = clamp(fc, 10, audioCtx.sampleRate/2 - 100);
+    }
+
+    function stopAudio() {
+      if (!audioCtx) return;
+      try { if (osc) { osc.stop(0); osc.disconnect(); } } catch(e) {}
+      try { if (noiseNode) { noiseNode.stop(0); noiseNode.disconnect(); } } catch(e) {}
+      osc = null; noiseNode = null;
+    }
+
+    function playAudio() {
+      ensureAudio();
+      stopAudio();
+
+      const kind = $('#tone').value;
+      if (kind === 'noise') {
+        const bufferSize = 2 * audioCtx.sampleRate;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i=0; i<bufferSize; i++) data[i] = Math.random()*2 - 1;
+        noiseNode = audioCtx.createBufferSource();
+        noiseNode.buffer = buffer; noiseNode.loop = true;
+        noiseNode.connect(biquad); biquad.connect(wetGain);
+        noiseNode.connect(dryGain);
+        setCutoffForAudio();
+        noiseNode.start();
+      } else {
+        osc = audioCtx.createOscillator();
+        osc.type = kind;
+        osc.frequency.value = parseFloat($('#freq').value) || 1000;
+        osc.connect(biquad); biquad.connect(wetGain);
+        osc.connect(dryGain);
+        setCutoffForAudio();
+        osc.start();
+      }
+    }
+
+    $('#btnPlay').addEventListener('click', playAudio);
+    $('#btnStop').addEventListener('click', stopAudio);
+    $('#freq').addEventListener('input', e => { if (osc) osc.frequency.value = parseFloat(e.target.value)||0; });
+    $('#mix').addEventListener('input', e => {
+      const v = parseFloat(e.target.value);
+      if (dryGain && wetGain) { dryGain.gain.value = 1 - v; wetGain.gain.value = v; }
+    });
+    $('#sync').addEventListener('change', e => {
+      const on = e.target.value === 'on';
+      $('#manualFcRow').style.display = on ? 'none' : '';
+      setCutoffForAudio();
+    });
+    $('#manualFc').addEventListener('input', setCutoffForAudio);
+    [Rinp, Run, Cinp, Cun, fcinp].forEach(el => el.addEventListener('input', setCutoffForAudio));
+    $('#tone').addEventListener('change', () => { if (osc || noiseNode) playAudio(); });
+
+    // Initial
+    updateMode();
+    compute();
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
